@@ -17,5 +17,5 @@ arg3=$3; fi
 if [ $# -gt 3 ]; then
 arg4=$4; fi
 
-python3 main.py $arg1 $arg2 $arg3 $arg4
+python3 $arg4 $arg1 $arg2 $arg3 $arg4
 #echo $arg1 $arg2 $arg3 $arg4
