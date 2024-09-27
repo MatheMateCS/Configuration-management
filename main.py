@@ -64,7 +64,8 @@ class Processer:
         self.must_exit = False
         self.path_to_archive = path_to_archive
         self.cur_dir = "~" # full path to current directory
-        self.file_system = {} # key - full path, value - children
+        self.dir_system = {} # key - full dirpath, value - children
+        self.files = []
         self.parse_archive()
 
     def parse_archive(self):
@@ -74,17 +75,20 @@ class Processer:
             return
         
         with tarfile.open(self.path_to_archive, 'r') as tar:
-            self.file_system["~"] = list()
+            self.dir_system["~"] = list()
 
             for member in tar.getmembers():
                 if member.isdir():
-                    self.file_system["~/" + member.path] = list()
+                    self.dir_system["~/" + member.path] = list()
+                elif member.isfile():
+                    self.files.append("~/" + member.path)
 
             for member in tar.getmembers():
                 spath = ("~/" + member.path).split("/")
-                if self.file_system.get("/".join(spath[:-1])) != None:
-                   self.file_system["/".join(spath[:-1])].append(spath[-1])
-        print(self.file_system)
+                if self.dir_system.get("/".join(spath[:-1])) != None:
+                   self.dir_system["/".join(spath[:-1])].append(spath[-1])
+        print(self.dir_system)
+        print(self.files)
 
     def process(self, command): # Analysing command
         result, command_s = "", command.split()
@@ -107,7 +111,7 @@ class Processer:
             result = f'Command "{command_s[0]}" is not found\n'
         return result
 
-    def approve_path(self, path):
+    def approve_dirpath(self, path):
         if path[-1] == "/": # ignore last '/'
             path = "/".join(filter(None, path.split("/")))
         if path.startswith(".."): # embedding parent directory
@@ -116,15 +120,27 @@ class Processer:
             path = path.replace(".", self.cur_dir, 1)
         if not path.startswith("~"): # if path still not full
             path = self.cur_dir + "/" + path # make it full
-        return path if (self.file_system.get(path) != None) else ""
+        return path if (self.dir_system.get(path) != None) else ""
+
+    def approve_filepath(self, path):
+        if path.startswith(".."): # embedding parent directory
+            path = path.replace("..", "/".join(self.cur_dir.split("/")[:-1]), 1)
+        elif path.startswith("."): # embedding current directory
+            path = path.replace(".", self.cur_dir, 1)
+        if not path.startswith("~"): # if path still not full
+            path = self.cur_dir + "/" + path # make it full
+        return path if path in self.files else ""
+
+    def get_name(self, path):
+        return path.split("/")[-1]
 
     def _ls(self, args):
         print(args)
         if not args: # current directory
-            return " ".join(self.file_system[self.cur_dir]) + "\n"
-        path = self.approve_path(args[0])
+            return " ".join(self.dir_system[self.cur_dir]) + "\n"
+        path = self.approve_dirpath(args[0])
         if path != "":
-            return " ".join(self.file_system[path]) + "\n"
+            return " ".join(self.dir_system[path]) + "\n"
         else:
             return f"There is no directory with name '{args[0]}'\n"
             
@@ -132,7 +148,7 @@ class Processer:
         print(args)
         if not args:
             return ""
-        path = self.approve_path(args[0])
+        path = self.approve_dirpath(args[0])
         if path != "":
             self.cur_dir = path
             return ""
@@ -146,15 +162,36 @@ class Processer:
         print(args)
         if len(args) != 2:
             return "Command 'cp' must have two arguments.\n"
-        # else:
+        else:
+            if self.approve_filepath(args[0]) != "": # copy file
+                print("It's file")
+            elif self.approve_dirpath(args[0]) != "": # copy directory
+                print("It's dir")
+            else:
+                return f"There is no such file or directory with name '{args[0]}'\n"
             
     
     def _uptime(self):
         return ""
 
-    def _tree(self, root_dir):
-        return ""
-              
+    def _tree(self, args):
+        print(args)
+        if not args:
+            return self.build_tree(self.cur_dir, "") + "\n"
+        path = self.approve_dirpath(args[0])
+        if path != "":
+            return self.build_tree(path, "") + "\n"
+        else:
+            return f"There is no directory with name '{args[0]}'\n"
+        
+    def build_tree(self, root, indent):
+        if not self.dir_system.get(root) or self.dir_system.get(root) == None:
+            return indent + self.get_name(root)
+        else:
+            s = indent + self.get_name(root)
+            for suc in self.dir_system.get(root):
+                s += "\n" + self.build_tree(root + "/" + suc, indent + "|--")
+            return s
 
 def get_args(): # Getting arguments transmitted to script
     parser = argparse.ArgumentParser()
