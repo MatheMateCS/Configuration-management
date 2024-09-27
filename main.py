@@ -64,7 +64,7 @@ class Processer:
         self.must_exit = False
         self.path_to_archive = path_to_archive
         self.cur_dir = "~" # full path to current directory
-        self.file_system = {}
+        self.file_system = {} # key - full path, value - children
         self.parse_archive()
 
     def parse_archive(self):
@@ -75,73 +75,100 @@ class Processer:
         
         with tarfile.open(self.path_to_archive, 'r') as tar:
             self.file_system["~"] = list()
+            
             for member in tar.getmembers():
-                spath = member.path.split("/")
-                if len(spath) == 1:
-                    self.file_system["~"].append(spath[0])
+                spath = ("~/" + member.path).split("/")
+                print(spath)
+
+                if len(spath) == 2:
+                    self.file_system["~"].append(spath[1])
                 else:
-                    if self.file_system.get(spath[-2]) == None:
-                        self.file_system[spath[-2]] = list()
-                    self.file_system[spath[-2]].append(spath[-1])
+                    if self.file_system.get("/".join(spath[:-1])) == None:
+                        self.file_system["/".join(spath[:-1])] = list()
+                    self.file_system["/".join(spath[:-1])].append(spath[-1])
         print(self.file_system)
 
     def process(self, command): # Analysing command
-        result, alst = "", command.split(" ")
-        if alst[0] == "ls":
-            result = self._ls(alst[1:])
-        elif alst[0] == "exit":
+        result, command_s = "", command.split()
+        print(command_s)
+        if not command_s:
+            return result
+        elif command_s[0] == "ls":
+            result = self._ls(command_s[1:])
+        elif command_s[0] == "exit":
             self._exit()
-        elif alst[0] == "cd":
-            result = self._cd(alst[1:])
-        # elif command.startswith("cp "):
-
+        elif command_s[0] == "cd":
+            result = self._cd(command_s[1:])
+        elif command_s[0] == "cp":
+            result = self._cp(command_s[1:])
         # elif command.startswith("uptime "):
 
         # elif command.startswith("tree "):
 
         else:
-            result = f'Command "{alst[0]}" is not found\n'
+            result = f'Command "{command_s[0]}" is not found\n'
         return result
 
-    def _ls(self, lst):
-        print(lst)
-        if not lst or not lst[0]:
-            return " ".join(self.file_system[self.cur_dir.split("/")[-1]]) + "\n"
-        else:
-            if not(lst[0] in self.file_system[self.cur_dir.split("/")[-1]]):
-                return f"There is no directory with name '{lst[0]}'\n"
-            return " ".join(self.file_system[lst[0]]) + "\n"
-    
-    def _cd(self, lst):
-        print(lst)
-        if not lst or not lst[0]:
+    def _ls(self, args):
+        print(args)
+        if not args or args[0] == "." or args[0] == "./": # current directory
+            return " ".join(self.file_system[self.cur_dir]) + "\n"
+        elif args[0] == ".." or args[0] == "../": # parent's directory
+            if not(self.cur_dir == "~"):
+                return " ".join(self.file_system["/".join(self.cur_dir.split("/")[:-1])]) + "\n"
             return ""
-        elif lst[0] == "..":
-            if self.cur_dir == "~":
+        else:
+            args[0] = "/".join(filter(None, args[0].split("/"))) # ignore of last '/'
+            if self.file_system.get(args[0]) != None: # if path is full
+                return " ".join(self.file_system[args[0]]) + "\n"
+            if args[0].startswith("./"):
+                args[0] = args[0].replace("./", "", 1) # ignore of initial './'
+            cur = self.cur_dir
+            for dir in args[0].split("/"): # checking path on correctness
+                if not (dir in self.file_system[cur]):
+                    return f"There is no directory with name '{args[0]}'\n"
+                cur += "/" + dir
+            return " ".join(self.file_system[cur]) + "\n"
+
+    def _cd(self, args):
+        print(args)
+        if not args or args[0] == "." or args[0] == "./":
+            return ""
+        elif args[0] == ".." or args[0] == "../":
+            if not(self.cur_dir == "~"):
+                self.cur_dir = "/".join(self.cur_dir.split("/")[:-1])
+            return ""
+        else:
+            args[0] = "/".join(filter(None, args[0].split("/")))
+            if self.file_system.get(args[0]) != None: 
+                self.cur_dir = args[0]
                 return ""
-            self.cur_dir = "/".join(self.cur_dir.split("/")[:-1])
-            return ""
-        else:
-            if lst[0][-1] == "/":
-                lst[0] = lst[0][:-1]
-            if not(lst[0] in self.file_system[self.cur_dir.split("/")[-1]]):
-                return f"There is no directory with name '{lst[0]}'\n"
-            self.cur_dir += "/" + lst[0]
+            if args[0].startswith("./"):
+                args[0] = args[0].replace("./", "", 1)
+            cur = self.cur_dir
+            for dir in filter(None, args[0].split("/")):
+                if not (dir in self.file_system[cur]):
+                    return f"There is no directory with name '{args[0]}'\n"
+                cur += "/" + dir
+            self.cur_dir = cur
             return ""
 
     def _exit(self):
         self.must_exit = True
 
-    # def _cp(self, arg1, arg2):
-        #
+    def _cp(self, args):
+        print(args)
+        # if len(args) != 2:
+        #     return "Command 'cp' must have two arguments.\n"
+        # else:
+            
     
     # def _uptime(self):
         #
 
     # def _tree(self, root_dir):
         #
-    
-           
+              
 
 def get_args(): # Getting arguments transmitted to script
     parser = argparse.ArgumentParser()
