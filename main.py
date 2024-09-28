@@ -3,6 +3,7 @@ import sys
 import tkinter as tk
 from tkinter import scrolledtext as st
 import tarfile
+import subprocess
 
 # Class that describes the window of user interface
 class GUI: 
@@ -171,8 +172,8 @@ class Processer:
                 return f"There is no such file or directory with name '{args[0]}'\n"
             
     
-    def _uptime(self):
-        return ""
+    def _uptime(self, args):
+        return subprocess.run(args=args, executable="./uptime.sh", capture_output=True).stdout
 
     def _tree(self, args):
         print(args)
