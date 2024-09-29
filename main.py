@@ -8,15 +8,18 @@ import datetime
 
 # Class that describes the window of user interface
 class GUI: 
-    def __init__(self, args): # Constructor
+    def __init__(self, args, main_window): # Constructor
         # Getting arguments for subsequent using
-        self.args = args
+        # self.args = args
+        self.username = args[0]
+        self.hostname = args[1]
+        self.path_to_archive = args[2]
 
         # Binding processer
-        self.processer = Processer(args.path_to_archive)
+        self.processer = Processer(self.path_to_archive)
    
         # Window settings
-        self.main_window = tk.Tk() 
+        self.main_window = main_window 
         self.main_window.title("GUI Shell Emulator")
         self.main_window.wm_attributes("-topmost", 1)
         self.main_window.resizable(False, True)
@@ -24,10 +27,11 @@ class GUI:
         self.main_window.grid_columnconfigure(0, weight=1)
 
         # Display that shows actions in cmd
-        self.display = st.ScrolledText(self.main_window, height=40, width=60)
+        self.display = st.ScrolledText(self.main_window, height=20, width=60)
         self.display.configure(background="#000000", foreground="#7FFF00")
         self.display.grid(row=0, column=0, columnspan=2, pady=5)
         self.prompt_insert()
+        self.display.config(state='disabled')
 
         # Standard entry
         self.input_area = tk.Entry(self.main_window, width=50)
@@ -38,19 +42,18 @@ class GUI:
         self.enter_btn = tk.Button(self.main_window, text="Enter", command=self.push_text)
         self.enter_btn.configure(background="#47B1DE", font=("Arial", 14, "bold"), foreground="#FFFFFF")
         self.enter_btn.grid(row=1, column=1, padx=2, pady=2, sticky='n')
-        
-        self.main_window.mainloop()
 
     def close(self): # Closing the GUI
         self.main_window.quit()
 
     def prompt_insert(self): # Entering the prompt
-        self.display.insert(tk.END, f"{self.args.username}@{self.args.hostname}:{self.processer.cur_dir}$ ") #TODO: add username, hostname, cur dir
+        self.display.insert(tk.END, f"{self.username}@{self.hostname}:{self.processer.cur_dir}$ ") #TODO: add username, hostname, cur dir
 
     def push_text(self): # Capturing the text from entry
         # Command text wrapping
         command = self.input_area.get()
         self.input_area.delete(0, tk.END)
+        self.display.config(state='normal')
         self.display.insert(tk.END, command + '\n')
 
         # Processing command and printing result
@@ -59,6 +62,7 @@ class GUI:
             self.close()
         self.display.insert(tk.END, result)
         self.prompt_insert()
+        self.display.config(state='disabled')
 
 # Class that operating with the user input
 class Processer:
@@ -89,12 +93,9 @@ class Processer:
                 spath = ("~/" + member.path).split("/")
                 if self.dir_system.get("/".join(spath[:-1])) != None:
                    self.dir_system["/".join(spath[:-1])].append(spath[-1])
-        print(self.dir_system)
-        print(self.files)
 
     def process(self, command): # Analysing command
         result, command_s = "", command.split()
-        print(command_s)
         if not command_s:
             return result
         elif command_s[0] == "ls":
@@ -166,9 +167,9 @@ class Processer:
             return "Command 'cp' must have two arguments.\n"
         else:
             ar0_d = self.approve_dirpath(args[0])
-            ar0_f = self.approve_dirpath(args[0])
+            ar0_f = self.approve_filepath(args[0])
             ar1_d = self.approve_dirpath(args[1])
-            ar1_f = self.approve_dirpath(args[1]) 
+            ar1_f = self.approve_filepath(args[1]) 
             if ar0_f: # copy file
                 if ar1_d: # copy to directory with creating the same file
                     if self.get_name(args[0]) not in self.dir_system.get(ar1_d):
@@ -178,14 +179,14 @@ class Processer:
                     None
                 elif self.approve_dirpath(self.get_parent(args[1])): # copy to directory with creating the new file
                     self.dir_system.get(self.approve_dirpath(self.get_parent(args[1]))).append(self.get_name(args[1]))
-                    self.files.append(self.approve_dirpath(self.get_parent(args[1]))) + "/" + str(self.get_name(args[1]))
+                    self.files.append(self.approve_dirpath(self.get_parent(args[1])) + "/" + str(self.get_name(args[1])))
                 else:
                     return f"There is no such file or directory with name '{args[1]}'\n"
 
             elif ar0_d: # copy directory
-                if ar1_f != "": # copy dir to file
+                if ar1_f: # copy dir to file
                     return f"'{self.get_name(args[1])}' is not a directory.\n"
-                elif ar1_d != "": # copy dir to dir
+                elif ar1_d: # copy dir to dir
                     if ar0_d in ar1_d:
                         return f"Cannot copy directory that contains or equal to target directory!\n"
                     self.recursive_copying(ar0_d, ar1_d)
@@ -213,7 +214,6 @@ class Processer:
         return cur_time + " up " + work_time + " sec\n"
 
     def _tree(self, args):
-        print(args)
         if not args:
             return self.build_tree(self.cur_dir, "") + "\n"
         path = self.approve_dirpath(args[0])
@@ -237,12 +237,14 @@ def get_args(): # Getting arguments transmitted to script
     parser.add_argument("hostname", help="Имя компьютера")
     parser.add_argument("path_to_archive", help="Путь до архива")
     parser.add_argument("path_to_script", help="Путь до стартового скрипта")
-    return parser.parse_args()
+    args = parser.parse_args()
+    return [args.username, args.hostname, args.path_to_archive, args.path_to_script]
 
-def main():
-    args = get_args()
-    Gui = GUI(args)
 
 start_time = time.time()
-main()
+if __name__ == "__main__":
+    args = get_args()
+    main_window = tk.Tk()
+    Gui = GUI(args, main_window)
+    main_window.mainloop()
 
