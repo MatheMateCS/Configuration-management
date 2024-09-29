@@ -113,7 +113,7 @@ class Processer:
             result = f'Command "{command_s[0]}" is not found\n'
         return result
 
-    def approve_dirpath(self, path):
+    def approve_dirpath(self, path): # returns full path if directory correct
         if path[-1] == "/": # ignore last '/'
             path = "/".join(filter(None, path.split("/")))
         if path.startswith(".."): # embedding parent directory
@@ -124,7 +124,7 @@ class Processer:
             path = self.cur_dir + "/" + path # make it full
         return path if (self.dir_system.get(path) != None) else ""
 
-    def approve_filepath(self, path):
+    def approve_filepath(self, path): # returns full path if file correct
         if path.startswith(".."): # embedding parent directory
             path = path.replace("..", "/".join(self.cur_dir.split("/")[:-1]), 1)
         elif path.startswith("."): # embedding current directory
@@ -135,23 +135,24 @@ class Processer:
 
     def get_name(self, path):
         return path.split("/")[-1]
+    
+    def get_parent(self, path):
+        return "/".join(path.split("/")[:-1])
 
     def _ls(self, args):
-        print(args)
         if not args: # current directory
             return " ".join(self.dir_system[self.cur_dir]) + "\n"
         path = self.approve_dirpath(args[0])
-        if path != "":
+        if path:
             return " ".join(self.dir_system[path]) + "\n"
         else:
             return f"There is no directory with name '{args[0]}'\n"
             
     def _cd(self, args):
-        print(args)
         if not args:
             return ""
         path = self.approve_dirpath(args[0])
-        if path != "":
+        if path:
             self.cur_dir = path
             return ""
         else:
@@ -161,30 +162,33 @@ class Processer:
         self.must_exit = True
 
     def _cp(self, args):
-        print(args)
         if len(args) != 2:
             return "Command 'cp' must have two arguments.\n"
         else:
-            if self.approve_filepath(args[0]) != "": # copy file
-                if self.approve_dirpath(args[1]) != "": # copy to directory with creating the same file
-                    if args[0].split("/")[-1] not in self.dir_system.get(self.approve_dirpath(args[1])):
-                        self.dir_system.get(self.approve_dirpath(args[1])).append(args[0].split("/")[-1])
-                        self.files.append(self.approve_dirpath(args[1]) + "/" + str(args[0].split("/")[-1]))
-                elif self.approve_filepath(args[1]) != "": # copy to existing file
+            ar0_d = self.approve_dirpath(args[0])
+            ar0_f = self.approve_dirpath(args[0])
+            ar1_d = self.approve_dirpath(args[1])
+            ar1_f = self.approve_dirpath(args[1]) 
+            if ar0_f: # copy file
+                if ar1_d: # copy to directory with creating the same file
+                    if self.get_name(args[0]) not in self.dir_system.get(ar1_d):
+                        self.dir_system.get(ar1_d).append(args[0].split("/")[-1])
+                        self.files.append(ar1_d + "/" + str(args[0].split("/")[-1]))
+                elif ar1_f: # copy to existing file
                     None
-                elif self.approve_dirpath("/".join(args[1].split("/")[:-1])): # copy to directory with creating the new file
-                    self.dir_system.get(self.approve_dirpath("/".join(args[1].split("/")[:-1]))).append(args[1].split("/")[-1])
-                    self.files.append(self.approve_dirpath("/".join(args[1].split("/")[:-1])) + "/" + str(args[1].split("/")[-1]))
+                elif self.approve_dirpath(self.get_parent(args[1])): # copy to directory with creating the new file
+                    self.dir_system.get(self.approve_dirpath(self.get_parent(args[1]))).append(self.get_name(args[1]))
+                    self.files.append(self.approve_dirpath(self.get_parent(args[1]))) + "/" + str(self.get_name(args[1]))
                 else:
                     return f"There is no such file or directory with name '{args[1]}'\n"
 
-            elif self.approve_dirpath(args[0]) != "": # copy directory
-                if self.approve_filepath(args[1]) != "": # copy dir to file
-                    return f"'{args[1].split("/")[-1]}' is not a directory.\n"
-                elif self.approve_dirpath(args[1]) != "": # copy dir to dir
-                    if self.approve_dirpath(args[0]) in self.approve_dirpath(args[1]):
+            elif ar0_d: # copy directory
+                if ar1_f != "": # copy dir to file
+                    return f"'{self.get_name(args[1])}' is not a directory.\n"
+                elif ar1_d != "": # copy dir to dir
+                    if ar0_d in ar1_d:
                         return f"Cannot copy directory that contains or equal to target directory!\n"
-                    self.recursive_copying(self.approve_dirpath(args[0]), self.approve_dirpath(args[1]))
+                    self.recursive_copying(ar0_d, ar1_d)
                 else:
                     return f"There is no such file or directory with name '{args[1]}'\n"
             else:
@@ -218,7 +222,7 @@ class Processer:
         else:
             return f"There is no directory with name '{args[0]}'\n"
         
-    def build_tree(self, root, indent):
+    def build_tree(self, root, indent): # recursive building of hierarchy
         if not self.dir_system.get(root) or self.dir_system.get(root) == None:
             return indent + self.get_name(root)
         else:
