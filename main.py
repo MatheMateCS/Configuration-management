@@ -24,13 +24,13 @@ class GUI:
         self.main_window.grid_columnconfigure(0, weight=1)
 
         # Display that shows actions in cmd
-        self.display = st.ScrolledText(self.main_window, height=20, width=40)
+        self.display = st.ScrolledText(self.main_window, height=40, width=60)
         self.display.configure(background="#000000", foreground="#7FFF00")
         self.display.grid(row=0, column=0, columnspan=2, pady=5)
         self.prompt_insert()
 
         # Standard entry
-        self.input_area = tk.Entry(self.main_window, width=30)
+        self.input_area = tk.Entry(self.main_window, width=50)
         self.input_area.configure(background="#000000", foreground="#7FFF00")
         self.input_area.grid(row=1, column=0, pady=2)
         
@@ -166,13 +166,43 @@ class Processer:
             return "Command 'cp' must have two arguments.\n"
         else:
             if self.approve_filepath(args[0]) != "": # copy file
-                print("It's file")
+                if self.approve_dirpath(args[1]) != "": # copy to directory with creating the same file
+                    if args[0].split("/")[-1] not in self.dir_system.get(self.approve_dirpath(args[1])):
+                        self.dir_system.get(self.approve_dirpath(args[1])).append(args[0].split("/")[-1])
+                        self.files.append(self.approve_dirpath(args[1]) + "/" + str(args[0].split("/")[-1]))
+                elif self.approve_filepath(args[1]) != "": # copy to existing file
+                    None
+                elif self.approve_dirpath("/".join(args[1].split("/")[:-1])): # copy to directory with creating the new file
+                    self.dir_system.get(self.approve_dirpath("/".join(args[1].split("/")[:-1]))).append(args[1].split("/")[-1])
+                    self.files.append(self.approve_dirpath("/".join(args[1].split("/")[:-1])) + "/" + str(args[1].split("/")[-1]))
+                else:
+                    return f"There is no such file or directory with name '{args[1]}'\n"
+
             elif self.approve_dirpath(args[0]) != "": # copy directory
-                print("It's dir")
+                if self.approve_filepath(args[1]) != "": # copy dir to file
+                    return f"'{args[1].split("/")[-1]}' is not a directory.\n"
+                elif self.approve_dirpath(args[1]) != "": # copy dir to dir
+                    if self.approve_dirpath(args[0]) in self.approve_dirpath(args[1]):
+                        return f"Cannot copy directory that contains or equal to target directory!\n"
+                    self.recursive_copying(self.approve_dirpath(args[0]), self.approve_dirpath(args[1]))
+                else:
+                    return f"There is no such file or directory with name '{args[1]}'\n"
             else:
                 return f"There is no such file or directory with name '{args[0]}'\n"
+        return ""
             
-    
+    def recursive_copying(self, dir, target_dir):
+        self.dir_system.get(target_dir).append(self.get_name(dir))
+        new_dir = target_dir + "/" + self.get_name(dir)
+        self.dir_system[new_dir] = list()
+        for suc in self.dir_system.get(dir):
+            full_suc = dir + "/" + suc
+            if full_suc in self.files:
+                self.files.append(new_dir + "/" + suc)
+                self.dir_system.get(new_dir).append(suc)
+            else:
+                self.recursive_copying(full_suc, new_dir)
+
     def _uptime(self, args):
         work_time = str(round(time.time() - start_time)) # worktime in seconds
         cur_time = datetime.datetime.now().strftime("%H:%M:%S") # current time
@@ -208,7 +238,6 @@ def get_args(): # Getting arguments transmitted to script
 def main():
     args = get_args()
     Gui = GUI(args)
-    # print(args.username, args.hostname, args.path_to_archive, args.path_to_script)
 
 start_time = time.time()
 main()
