@@ -3,7 +3,8 @@ import sys
 import tkinter as tk
 from tkinter import scrolledtext as st
 import tarfile
-import subprocess
+import time
+import datetime
 
 # Class that describes the window of user interface
 class GUI: 
@@ -173,7 +174,9 @@ class Processer:
             
     
     def _uptime(self, args):
-        return subprocess.run(args=args, executable="./uptime.sh", capture_output=True).stdout
+        work_time = str(round(time.time() - start_time)) # worktime in seconds
+        cur_time = datetime.datetime.now().strftime("%H:%M:%S") # current time
+        return cur_time + " up " + work_time + " sec\n"
 
     def _tree(self, args):
         print(args)
@@ -207,6 +210,6 @@ def main():
     Gui = GUI(args)
     # print(args.username, args.hostname, args.path_to_archive, args.path_to_script)
 
-
+start_time = time.time()
 main()
 
