@@ -53,4 +53,6 @@ tar. Эмулятор должен работать в режиме GUI.
 
 ## Тестирование
 
-<video href="https://drive.google.com/file/d/1hmnxtdc5z24UfTb9IIesOKYzRkbbU2eo/view?usp=sharing" width="640" height="400" controls></video>
+В видео представлено тестирование программы:
+
+https://drive.google.com/file/d/1hmnxtdc5z24UfTb9IIesOKYzRkbbU2eo/view?usp=sharing
