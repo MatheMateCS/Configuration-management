@@ -4,7 +4,7 @@ import os
 import sys
 import zlib
 
-test_repo = "YP-Frontend"
+test_repo = "../../"
 
 # Getting arguments transmitted to script
 def get_args()->list: 
@@ -16,11 +16,10 @@ def get_args()->list:
     args = parser.parse_args()
     return [args.gvis_path, args.repo_path, args.res_path, args.branch_name]
 
-# Bypassing commits and store information about them
-def get_commits_hierarchy(repo_path: str, branch_name: str): 
+# Choosing branch and store information about commits
+def get_commits_info(repo_path: str, branch_name: str)->list: 
     try:
         branches_path = os.path.join(repo_path, ".git", "refs", "heads")    # Path to branches references
-        objects_path = os.path.join(repo_path, ".git", "objects")           # Path to git objects
         if not branch_name in os.listdir(branches_path):                    # Handling absence of that branch
             print(f"{'\033[91m'}There is no branch with name '{branch_name}' in this git tree!{'\033[0m'}")
             with open(os.path.join(repo_path, ".git", "HEAD")) as href:
@@ -32,18 +31,41 @@ def get_commits_hierarchy(repo_path: str, branch_name: str):
                     sys.exit(0)
             print(f"{'\033[91m'}So, the commits graph will be built for the current branch '{branch_name}'{'\033[0m'}")
         
+        dict_info = {}                                                      # key - commit hash, value = list of [[parents], date, author]
+
+        objects_path = os.path.join(repo_path, ".git", "objects")           # Path to git objects
+        with open(os.path.join(branches_path, branch_name)) as bref:
+            last_commit_hash = bref.read().strip()                          # Getting hash-reference to last commit in this branch
+        commits_bypassing(objects_path, last_commit_hash, dict_info)
+        return dict_info
     except FileNotFoundError:                                               # Handling wrong file pathes
         print(f"{'\033[91m'}It seems that you've entered wrong pathes.\n\
               \rPlease restart program with correct arguments!{'\033[0m'}")
         sys.exit(-1)
 
+# Recursive bypassing of commits
+def commits_bypassing(objects_path: str, commit_hash: str, dict_info: dict)->None:
+    with open(os.path.join(objects_path, commit_hash[:2], commit_hash[2:]), "rb") as info:
+        data = zlib.decompress(info.read()).decode('utf-8').splitlines()        # Load commit info
+    date, author, parents = None, "", []
+    for line in data:
+        if line.startswith("parent"):
+            parents = [el for el in data[1].split()[1:]]                        # Parse parents of commit
+        elif line.startswith("author"):
+            author = line.split()[1]                                            # Parse author of commit
+            date = datetime.datetime.fromtimestamp(int(line.split()[3]))        # Parse date of commit
+    dict_info[commit_hash] = [parents, str(date), author]                       # Record commit info to the dictionary
+    for parent in parents:
+        commits_bypassing(objects_path, parent, dict_info)                      # Recursive calling
+
+        
+
+
 def main():
     # args = get_args()
     # print(args)
-    # print(os.listdir(os.path.join(test_repo, branches_path)))
-    # print(f"{'\033[91m'}WARNING!")
-    get_commits_hierarchy(test_repo, "master")
+    print(get_commits_info(test_repo, "master"))
     
-    
+
 if __name__ == "__main__":
     main()
