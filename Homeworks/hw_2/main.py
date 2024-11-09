@@ -38,7 +38,7 @@ def get_commits_info(repo_path: str, branch_name: str)->dict:
         commits_bypassing(objects_path, last_commit_hash, dict_info)
         return dict_info
     except FileNotFoundError:                                               # Handling wrong file pathes
-        print(f"{'\033[91m'}It seems that you've entered wrong pathes.\n\
+        print(f"{'\033[91m'}It seems that you've entered wrong path to repo.\n\
               \rPlease restart program with correct arguments!{'\033[0m'}")
         sys.exit(-1)
 
@@ -49,7 +49,7 @@ def commits_bypassing(objects_path: str, commit_hash: str, dict_info: dict)->Non
     date, author, parents = None, "", []
     for line in data:
         if line.startswith("parent"):
-            parents = [el for el in data[1].split()[1:]]                        # Parse parents of commit
+            parents.append(line.split()[1])
         elif line.startswith("author"):
             author = line.split()[1]                                            # Parse author of commit
             date = datetime.datetime.fromtimestamp(int(line.split()[3]))        # Parse date of commit
@@ -60,21 +60,28 @@ def commits_bypassing(objects_path: str, commit_hash: str, dict_info: dict)->Non
 # Bulding a Mermaid graph
 def build_tree(commits_info: dict)->str:
     graph = "flowchart TD\n"
-    # tree_bypass(commits_info, commits_info['leaf'], graph)
-    for commit_hash in commits_info:
+    for commit_hash in commits_info:                                            # Bypassing dictionary
         if commit_hash != "leaf":
             commit_info = commits_info[commit_hash]
-            graph += f"\t'{commit_hash}'[{commit_info[2]}\n{commit_info[1]}]\n"
-            for parent in commit_info[0]:
+            graph += f"\t'{commit_hash}'[{commit_info[2]} {commit_info[1]}]\n" # Calling the vertex
+            for parent in commit_info[0]:                                       # Noting dependencies
                 graph += f"\t'{commit_hash}' --> '{parent}'\n"
     return graph
 
-#TODO: writing to file
+# Writing Mermaid code to file
+def write_to_file(res_path: str, data: str)->None:
+    try:
+        with open(res_path, "w+") as res:
+            res.write(data)
+        print(f"{'\033[92m'}Mermaid code of git commits graph was successfully saved into '{res_path}'{'\033[0m'}")
+    except FileNotFoundError:
+        print(f"{'\033[91m'}It seems that you've entered wrong path to result file.\n\
+              \rPlease restart program with correct arguments!{'\033[0m'}")
+        
 
 def main():
-    # args = get_args()
-    # print(args)
-    print(build_tree(get_commits_info(test_repo, "master")))
+    args = get_args()
+    write_to_file(args[2], build_tree(get_commits_info(args[1], args[3])))
     
 
 if __name__ == "__main__":
