@@ -1,7 +1,7 @@
 #!/bin/bash
 
 arg0="main.py"
-arg1="~/Mermaid/mermaid"
+arg1="visualizer.py"
 arg2="test_repo"
 arg3="graph.mermaid"
 arg4="master"
