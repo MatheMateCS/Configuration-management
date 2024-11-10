@@ -18,11 +18,13 @@ def get_args()->list:
 
 # Choosing branch and store information about commits
 def get_commits_info(repo_path: str, branch_name: str)->dict: 
+    if ".git" in os.listdir(repo_path):
+        repo_path = os.path.join(repo_path, ".git")
     try:
-        branches_path = os.path.join(repo_path, ".git", "refs", "heads")    # Path to branches references
+        branches_path = os.path.join(repo_path, "refs", "heads")    # Path to branches references
         if not branch_name in os.listdir(branches_path):                    # Handling absence of that branch
             print(f"{'\033[91m'}There is no branch with name '{branch_name}' in this git tree!{'\033[0m'}")
-            with open(os.path.join(repo_path, ".git", "HEAD"), "r") as href:
+            with open(os.path.join(repo_path, "HEAD"), "r") as href:
                 content = href.read()
                 if content.startswith("ref:"):
                     branch_name = content[5:].split('/')[-1].strip()        # Choosing current branch instead of non-existent
@@ -32,7 +34,7 @@ def get_commits_info(repo_path: str, branch_name: str)->dict:
             print(f"{'\033[91m'}So, the commits graph will be built for the current branch '{branch_name}'{'\033[0m'}")
         
         dict_info = {}                                                      # key - commit hash, value = list of [[parents], date, author]
-        objects_path = os.path.join(repo_path, ".git", "objects")           # Path to git objects
+        objects_path = os.path.join(repo_path, "objects")           # Path to git objects
         with open(os.path.join(branches_path, branch_name), "r") as bref:
             last_commit_hash = bref.read().strip()                          # Getting hash-reference to last commit in this branch
         commits_bypassing(objects_path, last_commit_hash, dict_info)
@@ -52,7 +54,8 @@ def commits_bypassing(objects_path: str, commit_hash: str, dict_info: dict)->Non
             parents.append(line.split()[1])
         elif line.startswith("author"):
             author = line.split()[1]                                            # Parse author of commit
-            date = datetime.datetime.fromtimestamp(int(line.split()[3]))        # Parse date of commit
+            date = datetime.datetime.fromtimestamp(int([i for i in line.split() 
+                                    if len(i) == 10 and i.startswith("17")][0]))# Parse date of commit
     dict_info[commit_hash] = [parents, str(date), author]                       # Record commit info to the dictionary
     for parent in parents:
         commits_bypassing(objects_path, parent, dict_info)                      # Recursive calling
