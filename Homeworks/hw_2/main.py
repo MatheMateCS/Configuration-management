@@ -29,7 +29,6 @@ def get_commits_info(repo_path: str, branch_name: str)->dict:
                     branch_name = content[5:].split('/')[-1].strip()        # Choosing current branch instead of non-existent
                 else:
                     print(f"{'\033[91m'}Well, there is no git branches in this repo at all!{'\033[0m'}")
-                    # sys.exit(0)
             print(f"{'\033[91m'}So, the commits graph will be built for the current branch '{branch_name}'{'\033[0m'}")
         
         dict_info = {}                                                      # key - commit hash, value = list of [[parents], date, author]
@@ -41,7 +40,6 @@ def get_commits_info(repo_path: str, branch_name: str)->dict:
     except FileNotFoundError:                                               # Handling wrong file pathes
         print(f"{'\033[91m'}It seems that you've entered wrong path to repo.\n\
               \rPlease restart program with correct arguments!{'\033[0m'}")
-        # sys.exit(-1)
 
 # Recursive bypassing of commits
 def commits_bypassing(objects_path: str, commit_hash: str, dict_info: dict)->None:

@@ -25,5 +25,6 @@ def main()->None:
         text = src.read()
         display(text)
 
+
 if __name__ == "__main__":
     main()
