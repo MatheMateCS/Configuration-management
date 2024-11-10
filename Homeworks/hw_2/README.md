@@ -81,9 +81,10 @@ OK
 ## Примеры результатов использования
 
 При успешной работе решения должно появиться окно с кодом Mermaid:
-
 <img src="./docs/images/window.png" alt="Изображение возникающего в результате работы программы окна" width="800"/>
 
 А в консоль выводятся информирующие пользователя сообщения, например:
-
 <img src="./docs/images/cmd.png" alt="Вывод программы в консоль" width="800"/>
+
+Тогда, скопировав код из визуализатора, можно вставить его в [онлайн-представление Mermaid](https://mermaid.live/edit#pako:eNqdlLuO2zAQRX9FYOPGNmaGbxZbbZM6qRK5GPGxXsCWFo6cZGP438O1nCoupFQUwauDMzMELyIOKYsgymH4Gfd8Gpsvz23fjiso2SfEYlCiYZsts6w7som1spijVC52FlffPv3gviEgtUHcIDRAAWWQfreM02w2T82KfUeQVdTSly5CtDljJlS5c9Ibgo5M1gRxdYPPTj-UxKBht4wzSZLMJdaAI2I01ntHnouJFCVgMh9LBQGv_gfuwIICVs4DYy6lVOkMtX2AzmEXuUPlGcwEn63yqAOgA93HNJszSaZcZEcUNUkZU8LOxvoDWDbKYYqWla_1Oj1Jzk7_K1ln5APSbhlnkvRKWulkKtn5kmphjrtsssXae0SbkTrvo793cnb6oaQN-i45e34PJ4JBwULOVKypV8gahXWQTmpKxhWsly4ll1lLoywDmKTkVOzs9ENJCBp3yziLr41Yi2M-Hfk11dfp0vZN04pxn4-5FaF-VhKfD2Mr2v5ao3weh8_vfRRhPJ3zWpyG88tehMKH73V3fks85udXfjnx8W_kjXsRLuKXqA-B3Gqrgawy2hFIXIt3EQi2aL1UBpzSXlmy17X4PQyVAFun61yUrtqyLmBuvK-3ww_89Q8ACG4e) и получить изображение следующего вида (нижний коммит является корневым):
+<img src="./docs/images/graph.png" alt="Вывод программы в консоль" width="800"/>
