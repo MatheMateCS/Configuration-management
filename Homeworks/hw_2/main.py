@@ -8,12 +8,13 @@ import zlib
 # Getting arguments transmitted to script
 def get_args()->list: 
     parser = argparse.ArgumentParser()
-    parser.add_argument("gvis_path", help="Path to graph visualizer")   # path to graph visualizer
-    parser.add_argument("repo_path", help="Path to analysed repo")      # path to repository being analiysed
-    parser.add_argument("res_path", help="Path to the result code")     # path to result in code form
-    parser.add_argument("branch_name", help="Branch name")              # branch name
+    parser.add_argument("gvis_path", help="Path to graph visualizer")   # Path to graph visualizer
+    parser.add_argument("repo_path", help="Path to analysed repo")      # Path to repository being analiysed
+    parser.add_argument("res_path", help="Path to the result code")     # Path to result in code form
+    parser.add_argument("branch_name", help="Branch name")              # Branch name
+    parser.add_argument("python", help="Path to graph visualizer")      # Path to Python interpreter
     args = parser.parse_args()
-    return [args.gvis_path, args.repo_path, args.res_path, args.branch_name]
+    return [args.gvis_path, args.repo_path, args.res_path, args.branch_name, args.python]
 
 # Choosing branch and store information about commits
 def get_commits_info(repo_path: str, branch_name: str)->dict: 
@@ -80,7 +81,7 @@ def write_to_file(res_path: str, data: str)->None:
 def main()->None:
     args = get_args()                                                           # Receiving args
     write_to_file(args[2], build_tree(get_commits_info(args[1], args[3])))      # Writing Mermaid code
-    os.system(f"python3 {args[0]} {args[2]}")                                   # Launch visualizer script
+    os.system(f"{args[4]} {args[0]} {args[2]}")                                   # Launch visualizer script
 
 
 if __name__ == "__main__":
