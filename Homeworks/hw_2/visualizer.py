@@ -19,9 +19,8 @@ def display(text: str)->None:
 
 def main()->None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("src_path", help="Path to graph code")              # branch name
+    parser.add_argument("src_path", help="Path to graph code") # Path to the source Mermaid code
     src_path = parser.parse_args().src_path
-    src_path = "res.mermaid"
     with open(src_path, "r") as src:
         text = src.read()
         display(text)
