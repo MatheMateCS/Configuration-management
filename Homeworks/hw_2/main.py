@@ -4,7 +4,6 @@ import os
 import sys
 import zlib
 
-test_repo = "../../"
 
 # Getting arguments transmitted to script
 def get_args()->list: 
@@ -66,7 +65,7 @@ def build_tree(commits_info: dict)->str:
     for commit_hash in commits_info:                                            # Bypassing dictionary
         if commit_hash != "leaf":
             commit_info = commits_info[commit_hash]
-            graph += f"\t'{commit_hash}'[{commit_info[2]} {commit_info[1]}]\n" # Calling the vertex
+            graph += f"\t'{commit_hash}'[{commit_info[2]} {commit_info[1]}]\n"  # Calling the vertex
             for parent in commit_info[0]:                                       # Noting dependencies
                 graph += f"\t'{commit_hash}' --> '{parent}'\n"
     return graph
@@ -81,11 +80,10 @@ def write_to_file(res_path: str, data: str)->None:
         print(f"{'\033[91m'}It seems that you've entered wrong path to result file.\n\
               \rPlease restart program with correct arguments!{'\033[0m'}")
         
-
-def main():
-    args = get_args()
-    write_to_file(args[2], build_tree(get_commits_info(args[1], args[3])))
-    
+def main()->None:
+    args = get_args()                                                           # Receiving args
+    write_to_file(args[2], build_tree(get_commits_info(args[1], args[3])))      # Writing Mermaid code
+    os.system(f"python3 {args[0]} {args[2]}")                                   # Launch visualizer script
 
 if __name__ == "__main__":
     main()
