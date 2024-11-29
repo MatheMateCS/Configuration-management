@@ -1,4 +1,5 @@
 import re
+import sys
 from peco import State, parse, program
 
 
@@ -40,7 +41,7 @@ class Converter:
         print(Converter.highligth("Синтаксических ошибок не обнаружено", type='ok'))
         return True
 
-    def __to_output(self, str):
+    def __to_output(self, str: str) -> None:
         self.xml += str + '\n'
 
     def __serialize(self, obj: State, name: str = '', indent: str = '', delim: str = '  ') -> None:
@@ -98,10 +99,15 @@ test2 = '''
     ( def str 'Hello, World!' )
     '''
 
+def read_cmd() -> str:
+    input = ''
+    for line in sys.stdin:
+        input += line
+    return input
+
 def main():
     converter = Converter()
-    converter.load(test2)
-    print(converter.convert())
+    print(read_cmd())
 
 if __name__ == '__main__':
     main()
