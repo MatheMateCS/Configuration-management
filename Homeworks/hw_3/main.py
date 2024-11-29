@@ -66,7 +66,6 @@ class Converter:
                     self.__serialize(self._constants[obj], name=name, indent=indent)
                 else:
                     print(Converter.highligth(f"There is no constant '{obj}' declared in this scope!"))
-                    exit(-1)
         elif type(obj) == list:
             self.__to_output(indent + f"<array{id}>")
             for el in obj:
@@ -90,10 +89,10 @@ class Converter:
                     self._constants[stack[i]] = stack[i+1]
             for cst in self._constants.items():
                 self.__serialize(cst[1], name=cst[0])
+            return self._xml[:-1]
         else:
-            exit(-1)
-        return self._xml[:-1]
-
+            return '<!-- Parse error -->'
+        
 # Reads from standard input
 def read_cmd() -> str:
     input = ''
