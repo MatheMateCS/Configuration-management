@@ -24,15 +24,20 @@ def check_syntax(s: State) -> bool:
 def is_str(s):
     return re.fullmatch(r"\'[^\']*\'", s) != None
 
+output = ''
+def to_output(str):
+    global output
+    output += str + '\n'
+
 def serialize(obj, name='', indent='', delim='  '):
     id = ''
     if name != '':
         id = f" name='{name}'"
     if type(obj) == float:
-        print(indent + f"<number{id}>{obj}</number>")
+        to_output(indent + f"<number{id}>{obj}</number>")
     elif type(obj) == str:
         if is_str(obj):
-            print(indent + f"<string{id}>{obj[1:-1]}</string>")
+            to_output(indent + f"<string{id}>{obj[1:-1]}</string>")
         else:
             if obj in constants:
                 serialize(constants[obj], name=name, indent=indent)
@@ -40,17 +45,17 @@ def serialize(obj, name='', indent='', delim='  '):
                 print(highligth(f"There is no constant '{obj}' declared in this scope!"))
                 exit(0)
     elif type(obj) == list:
-        print(indent + f"<array{id}>")
+        to_output(indent + f"<array{id}>")
         for el in obj:
             serialize(el, indent=indent+delim)
-        print(indent + "</array>")
+        to_output(indent + "</array>")
     elif type(obj) == dict:
-        print(indent + f"<dictionary{id}>")
+        to_output(indent + f"<dictionary{id}>")
         for val in obj.items():
-            print(indent + delim + f"<entry key='{val[0]}'>")
+            to_output(indent + delim + f"<entry key='{val[0]}'>")
             serialize(val[1], indent=indent+2*delim)
-            print(indent + delim + '</entry>')
-        print(indent + '</dictionary>')
+            to_output(indent + delim + '</entry>')
+        to_output(indent + '</dictionary>')
     
 
 src = '''
@@ -65,6 +70,7 @@ src2 = '''
     ( def dict { ip => [9, 3], mem => 2, sub => {  cnt=>$(num), val => 'true' } } )
     ( def str 'Hello, World!' )
     '''
+
 obj = parse(src2, main)
 ss = obj.stack[0]
 constants = dict()
@@ -74,6 +80,7 @@ for i in range(len(ss)):
 print(constants)
 for d in constants.items():
     serialize(d[1], name=d[0])
+print(output[:-1])
 
 def test():
     pass
