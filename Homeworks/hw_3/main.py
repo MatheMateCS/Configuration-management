@@ -25,26 +25,27 @@ def is_str(s):
     return re.fullmatch(r"\'[^\']*\'", s) != None
 
 def serialize(obj, name='', indent='', delim='  '):
+    id = ''
     if name != '':
-        name = f" name='{name}'"
+        id = f" name='{name}'"
     if type(obj) == float:
-        print(indent + f"<number{name}>{obj}</number>")
+        print(indent + f"<number{id}>{obj}</number>")
     elif type(obj) == str:
         if is_str(obj):
-            print(indent + f"<string{name}>{obj[1:-1]}</string>")
+            print(indent + f"<string{id}>{obj[1:-1]}</string>")
         else:
             if obj in constants:
-                serialize(constants[obj], indent=indent)
+                serialize(constants[obj], name=name, indent=indent)
             else:
                 print(highligth(f"There is no constant '{obj}' declared in this scope!"))
                 exit(0)
     elif type(obj) == list:
-        print(indent + f"<array{name}>")
+        print(indent + f"<array{id}>")
         for el in obj:
             serialize(el, indent=indent+delim)
         print(indent + "</array>")
     elif type(obj) == dict:
-        print(indent + f"<dictionary{name}>")
+        print(indent + f"<dictionary{id}>")
         for val in obj.items():
             print(indent + delim + f"<entry key='{val[0]}'>")
             serialize(val[1], indent=indent+2*delim)
