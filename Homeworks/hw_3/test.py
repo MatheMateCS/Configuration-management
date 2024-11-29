@@ -107,10 +107,12 @@ test_operator_err = '''
 '''
 
 class Tester(unittest.TestCase):
+    # Initial settings
     def setUp(self): 
         self.io_manager = io.StringIO() 
         self.converter = main.Converter()
 
+    # Tests declaration of different types
     def test_simple(self):
         test_simple
         self.converter.load(test_simple)
@@ -121,6 +123,7 @@ class Tester(unittest.TestCase):
         self.assertDictEqual(obj, self.converter._constants)
         self.assertIn('Source code is syntactically correct', out)
 
+    # Tests access to constant by '$(<name>)'
     def test_access(self):
         self.converter.load(test_access)
         with redirect_stdout(self.io_manager):
@@ -130,6 +133,7 @@ class Tester(unittest.TestCase):
         self.assertDictEqual(obj, self.converter._constants)
         self.assertIn('Source code is syntactically correct', out)
 
+    # Tests nesting of arrays and dictionaries
     def test_nesting(self):
         self.converter.load(test_nesting)
         with redirect_stdout(self.io_manager):
@@ -139,6 +143,7 @@ class Tester(unittest.TestCase):
         self.assertDictEqual(obj, self.converter._constants)
         self.assertIn('Source code is syntactically correct', out)
 
+    # Tests nesting and accessibility
     def test_complex(self):
         self.converter.load(test_complex)
         with redirect_stdout(self.io_manager):
@@ -149,6 +154,7 @@ class Tester(unittest.TestCase):
         self.assertIn('Source code is syntactically correct', out)
         self.assertIn(xml, translated_complex)
 
+    # Tests error of non-declared constant name
     def test_name_not_declared(self):
         self.converter.load(test_name_not_declared)
         with redirect_stdout(self.io_manager):
@@ -156,6 +162,7 @@ class Tester(unittest.TestCase):
         out = self.io_manager.getvalue()
         self.assertIn("There is no constant 'b' declared in this scope!", out)
 
+    # Tests error of incorrect comment declaration
     def test_comment_err(self):
         self.converter.load(test_comment_err)
         with redirect_stdout(self.io_manager):
@@ -163,6 +170,7 @@ class Tester(unittest.TestCase):
         out = self.io_manager.getvalue()
         self.assertIn("There is syntax error in 1 line", out)
 
+    # Tests error of incorrect naming
     def test_name_err(self):
         self.converter.load(test_name_err)
         with redirect_stdout(self.io_manager):
@@ -170,6 +178,7 @@ class Tester(unittest.TestCase):
         out = self.io_manager.getvalue()
         self.assertIn("There is syntax error in 2 line", out)
 
+    # Tests error of incorrect assignment sign
     def test_operator_err(self):
         self.converter.load(test_operator_err)
         with redirect_stdout(self.io_manager):
@@ -177,6 +186,7 @@ class Tester(unittest.TestCase):
         out = self.io_manager.getvalue()
         self.assertIn("There is syntax error in 1 line", out)
 
+    # Tests output of failed converting
     def test_failure(self):
         self.converter.load(test_operator_err)
         with redirect_stdout(self.io_manager):
