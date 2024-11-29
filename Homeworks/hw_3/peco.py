@@ -111,7 +111,7 @@ tok = lambda c: token(push(eat(c)))
 skip = lambda c: token(eat(c))
 
 number_rule = seq(tok(r'[-+]?\d+\.?\d*'), mknum)
-string_rule = seq(tok(r'\'[^\']*\''), mkstr)
+string_rule = seq(tok(r'\'[^\']*\''))
 
 value_rule = lambda s : value_rule(s)
 
@@ -126,4 +126,4 @@ dictionary_rule = seq(skip(r'{'), group(list_of(entry_rule, skip(r','))), skip(r
 
 value_rule = alt(number_rule, string_rule, array_rule, dictionary_rule, access_rule)
 
-main = seq(group(many(define_rule)), ws)
+program = seq(group(many(define_rule)), ws)
