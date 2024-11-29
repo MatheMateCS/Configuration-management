@@ -2,10 +2,8 @@ import re
 import sys
 from peco import State, parse, program
 
-
 # Implements the process of translating from configuration language to xml format
 class Converter:
-
     # Checks is it a string value or name of constant
     @staticmethod
     def is_str(s: str) -> bool:
@@ -43,10 +41,10 @@ class Converter:
             slice = self._obj.text[:err_ptr+1]
             num = slice.count('\n')
             pos = slice.rfind('\n')
-            print(Converter.highligth(f"Синтаксическая ошибка в {num} строке:"))
+            print(Converter.highligth(f"There is syntax error in {num} line:"))
             print(Converter.highligth(self._obj.text.split('\n')[num], "err", err_ptr-pos-1, err_ptr-pos))
             return False
-        print(Converter.highligth("Синтаксических ошибок не обнаружено", type='ok'))
+        print(Converter.highligth("Source code is syntactically correct", type='ok'))
         return True
 
     # Appends another string to the xml result 
@@ -95,7 +93,6 @@ class Converter:
         else:
             exit(-1)
         return self._xml[:-1]
-
 
 # Reads from standard input
 def read_cmd() -> str:
